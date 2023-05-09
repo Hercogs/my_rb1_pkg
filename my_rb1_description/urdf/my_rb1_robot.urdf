@@ -1,0 +1,332 @@
+<?xml version="1.0" ?>
+
+<robot name = "my_rb1_robot">
+
+    <!-- GAZEBO references -->
+    <gazebo reference="base_link" >
+        <material>Gazebo/Black</material>
+    </gazebo>
+
+    <gazebo reference="joint_chassis_front_caster">
+        <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
+    <gazebo reference="joint_chassis_back_caster">
+        <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
+
+    <gazebo reference="left_wheel_link">
+        <material>Gazebo/Red</material>
+        <mu1>1</mu1>
+        <mu2>1</mu2>
+    </gazebo>
+    <gazebo reference="right_wheel_link">
+        <material>Gazebo/Red</material>
+        <mu1>1</mu1>
+        <mu2>1</mu2>
+    </gazebo>
+
+    <gazebo reference="back_caster_link">
+        <material>Gazebo/White</material>
+        <mu1>0.15</mu1>
+        <mu2>0.15</mu2>
+    </gazebo>
+
+    <gazebo reference="front_caster_link">
+        <material>Gazebo/White</material>
+        <mu1>0.15</mu1>
+        <mu2>0.15</mu2>
+    </gazebo>
+
+
+    <!-- Gazebo - Laser scan -->
+    <gazebo reference="front_laser">
+        <sensor type="ray" name="laser_front_sensor">
+            <pose> 0 0 0 0 0 0</pose>
+            <visualize>true</visualize>
+            <update_rate>10</update_rate>
+            <ray>
+                <scan>
+                    <horizontal>
+                        <samples>180</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-1.570796</min_angle>
+                        <max_angle>1.570796</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.20</min>
+                    <max>10.0</max>
+                    <resolution>0.01</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.01</stddev>
+                </noise>
+            </ray>
+            <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
+                <topicName>/scan</topicName>
+                <frameName>sensor_laser</frameName>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+
+    <!-- Gazebo diff drive -->
+    <gazebo>
+        <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
+            <alwaysOn>true</alwaysOn>
+            <updateRate>10</updateRate>
+            <leftJoint>joint_base_left_wheel</leftJoint>
+            <rightJoint>joint_base_right_wheel</rightJoint>
+            <wheelSeparation>0.4</wheelSeparation>
+            <wheelDiameter>0.05</wheelDiameter>
+            <torque>10</torque>
+            <commandTopic>cmd_vel</commandTopic>
+            <odometryTopic>odom</odometryTopic>
+            <odometryFrame>odom</odometryFrame>
+            <robotBaseFrame>link_chassis</robotBaseFrame>
+        </plugin>
+    </gazebo>
+
+
+
+
+    <!-- Link chassis -->
+    <link name = "base_link">
+        <inertial>
+            <mass value = "20" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <!-- Inertial TODO -->
+            <inertia ixx="1.4" ixy="0" ixz="0" iyy="1.4" iyz="0" izz="2.5" />
+        </inertial>
+
+        <collision>
+            <geometry>
+                <cylinder length = "0.30" radius= "0.25" />
+            </geometry>
+        </collision>
+
+        <visual>
+            <geometry>
+                <cylinder length = "0.30" radius= "0.25" />
+            </geometry>
+            <material name = "Blue">
+                <color rgba = "0 0 1 0.5" />
+            </material>
+        </visual>
+    </link>
+
+    <!-- Joints  to left wheel -->
+    <joint name = "joint_base_left_wheel" type = "continuous">
+        <origin rpy = "1.57 0 0" xyz = "0.0 -0.2 -0.15" />
+        <parent link = "base_link" />
+        <child link = "left_wheel_link" />
+        <axis rpy = "0 0 0" xyz="0 0 1" />
+        <limit effort="10000" velocity="1000" />
+        <joint_properties damping = "1.0" friction = "0.75" />
+    </joint>
+
+    <!-- Joints  to right wheel -->
+    <joint name = "joint_base_right_wheel" type = "continuous">
+        <origin rpy = "1.57 0 0" xyz = "0.0 0.2 -0.15" />
+        <parent link = "base_link" />
+        <child link = "right_wheel_link" />
+        <axis rpy = "0 0 0" xyz="0 0 1" />
+        <limit effort="10000" velocity="1000" />
+        <joint_properties damping = "1.0" friction = "0.95" />
+    </joint>
+
+     <!-- Joints  to caster front wheel -->
+    <joint name = "joint_chassis_front_caster" type = "fixed">
+        <origin rpy = "0 0 0" xyz = "-0.1 0.0 -0.15" />
+        <parent link = "base_link" />
+        <child link = "front_caster_link" />
+    </joint>
+
+    <!-- Joints  to caster back wheel -->
+    <joint name = "joint_chassis_back_caster" type = "fixed">
+        <origin rpy = "0 0 0" xyz = "0.1 0.0 -0.15" />
+        <parent link = "base_link" />
+        <child link = "back_caster_link" />
+    </joint>
+
+    <!-- Joints  to base_footprint -->
+    <joint name = "joint_chassis_base_footprint" type = "fixed">
+        <origin rpy = "0 0 0" xyz = "0.25 0.0 0.095" />
+        <parent link = "base_link" />
+        <child link = "base_footprint_link" />
+    </joint>
+
+    <!-- Joints  to laser -->
+    <joint name = "joint_chassis_laser_link" type = "fixed">
+        <origin rpy = "3.14 0 0" xyz = "0.25 0.0 0.075" />
+        <parent link = "base_link" />
+        <child link = "front_laser" />
+    </joint>
+
+
+    <!-- Link left wheel -->
+    <link name = "left_wheel_link">
+        <inertial>
+            <mass value = "1.5" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <!-- Inertial TODO -->
+            <inertia ixx="0.00047" ixy="0" ixz="0" iyy="0.00055" iyz="0" izz="0.00055" />
+        </inertial>
+
+        <collision>
+            <geometry>
+                <cylinder length = "0.05" radius= "0.025" />
+            </geometry>
+        </collision>
+
+        <visual>
+            <geometry>
+                <cylinder length = "0.05" radius= "0.025" />
+            </geometry>
+            <material name = "Red">
+                <color rgba = "1 0 0 0.9" />
+            </material>
+        </visual>
+    </link>
+
+
+    <!-- Link right wheel -->
+    <link name = "right_wheel_link">
+        <inertial>
+            <mass value = "1.5" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <!-- Inertial TODO -->
+            <inertia ixx="0.00047" ixy="0" ixz="0" iyy="0.00055" iyz="0" izz="0.00055" />
+        </inertial>
+
+        <collision>
+            <geometry>
+                <cylinder length = "0.05" radius= "0.025" />
+            </geometry>
+        </collision>
+
+        <visual>
+            <geometry>
+                <cylinder length = "0.05" radius= "0.025" />
+            </geometry>
+            <material name = "Red">
+                <color rgba = "1 0 0 0.9" />
+            </material>
+        </visual>
+    </link>
+
+
+    <!-- Link front caster -->
+    <link name = "front_caster_link">
+        <inertial>
+            <mass value = "1" />
+            <origin xyz="0 0 -0.01" rpy="0 0 0" />
+            <!-- Inertial TODO -->
+            <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001" />
+        </inertial>
+
+        <collision>
+            <geometry>
+                <sphere radius = "0.025" />
+            </geometry>
+        </collision>
+
+        <visual>
+            <geometry>
+                <sphere radius = "0.025" />
+            </geometry>
+            <material name = "Blue">
+                <color rgba = "1 1 0 0.9" />
+            </material>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 -0.01" rpy="0 0 0" />
+            <geometry>
+                <sphere radius = "0.015" />
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0 0 -0.01" rpy="0 0 0" />
+            <geometry>
+                <sphere radius = "0.015" />
+            </geometry>
+            <material name = "White">
+                <color rgba = "1 1 1 0.9" />
+            </material>
+        </visual>
+    </link>
+
+
+    <!-- Link back caster -->
+    <link name = "back_caster_link">
+        <inertial>
+            <mass value = "1" />
+            <origin xyz="0 0 -0.01" rpy="0 0 0" />
+            <!-- Inertial TODO -->
+            <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001" />
+        </inertial>
+
+        <collision>
+            <geometry>
+                <sphere radius = "0.025" />
+            </geometry>
+        </collision>
+
+        <visual>
+            <geometry>
+                <sphere radius = "0.025" />
+            </geometry>
+            <material name = "Blue">
+                <color rgba = "1 1 0 0.9" />
+            </material>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 -0.01" rpy="0 0 0" />
+            <geometry>
+                <sphere radius = "0.015" />
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0 0 -0.01" rpy="0 0 0" />
+            <geometry>
+                <sphere radius = "0.015" />
+            </geometry>
+            <material name = "White">
+                <color rgba = "1 1 1 0.9" />
+            </material>
+        </visual>
+
+    </link>
+
+
+    <link name = "base_footprint_link">
+        <inertial>
+            <mass value = "0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <!-- Inertial TODO -->
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
+        </inertial>
+    </link>
+
+    <!-- Kaser link -->
+    <link name = "front_laser">
+        <inertial>
+            <mass value = "0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <!-- Inertial TODO -->
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
+        </inertial>
+    </link>
+
+
+
+
+
+
+</robot>
